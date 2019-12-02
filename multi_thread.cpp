@@ -23,3 +23,34 @@ void enqueue(int x)
     queue.push_back(x);
     cond.notify();// 可以移出临界区外
 }
+
+
+
+// CountDownLatch 倒数计数器
+class CountDownLatch:boost::noncopyable
+{
+    public:
+    explicit CountDownLatch(int count); // 倒数几次
+    void wait(); // 等待计数变为0
+    void countDown(); //计数减一
+
+    private:
+    mutable MutexLock mutex_;
+    Condition condition_;
+    int count_;
+};
+
+void CountDownLatch::wait()
+{
+    MutexLockGuard lock(mutex_);
+    while(count_ > 0)
+        condition_.wait();
+}
+
+void CountDownLatch::countDown()
+{
+    MutexLockGuard lock(mutex_);
+    --count_;
+    if(count_ == 0)
+        condition_.notifyAll();
+}
