@@ -1,0 +1,6 @@
+[C++]比memcpy快50%的FastMemcpy
+//SSE 指令集
+C++
+云风老大用汇编实现的一个高效memcpy，号称比传统memcpy快50%
+FastMemcpy
+https://github.com/skywind3000/FastMemcpy/blob/master/FastMemcpy.h#L580

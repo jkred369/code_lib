@@ -6,3 +6,286 @@
 2.函数体内调用了malloc()或者free()函数
 3.函数体内调用了标准I/O函数
 4.调用任何其他不可重入函数
+
+
+建议尽量减少使用跨线程的对象
+用流水线，生产者消费者，任务队列这些有规律的机制，最低限度地共享数据。这是我所知的最好的多线程编程的建议。
+
+线程同步的四项原则，按照重要性排列
+1.首要原则是尽量最低限度地共享对象，减少需要同步地场合。一个对象能不暴露给别的线程就不要暴露，
+如果要暴露，优先考虑immutable对象；实在不行才暴露可修改的对象，并用同步措施来充分保护它
+2.其次是使用高级的并发编程构件，如TaskQutue,Producer-Consumer Queue，CountDownLatch等等
+3.最后不得已必须使用底层同步原语时候，只用非递归的互斥器和条件变量，慎用读写锁，不要用信号量
+4.除了使用atomic整数之外，不自己编写lock-free代码，也不要用“内核级”同步原语。不凭空猜测“哪种做法性能更好”，
+比如spin lock VS mutex
+
+单独使用mutex时，我们主要为了保护共享数据。我个人的原则是：
+1.用RAII手法封装mutex的创建，销毁，加锁，解锁这四个操作。用RAII封装这几个操作是通行的做法，这几乎是C++的标准实践，后面我会给出具体的代码示例，相信大家都已经写过或用过类似的代码了。
+2.只用非递归的mutex(即不可重入的mutex)
+3.不手工调用lock() 和 unlock()函数，一切交给栈上的Guard对象的构造和析构函数负责。Guard对象的生命期正好等于临界区(分析对象在什么时候析构是C++程序员的基本功)。这样
+我们保证在同一个函数同一个scope里对某个mutex加锁和解锁。避免再foo()里加锁，然后跑到bar()里解锁；也避免在不同的语句分支中分别加锁，解锁。这种做法被称为Scoped locking
+4.在每次构造Guard对象的时候，思考一路上(调用栈上)已经持有的锁，防止因加锁顺序不同而导致死锁。由于Guard对象是栈上对象，看函数调用栈就能分析用锁的情况，非常便利。
+
+次要原则有：
+1.不使用跨进程的mutex，进程间通信只用TCP sockets
+2.加锁，解锁在同一个线程，线程a 不能去unlock 线程b已经锁住的mutex(RAII保证)
+3.别忘了解锁（RAII保证）
+4.不重复解锁（RAII保证）
+5.必要的时候可以考虑用PTHREAD_MUTEX_ERRORCHECK
+
+gdb
+thread apply all bt
+set logging file<文件名>
+set logging on
+thread apply all bt
+set logging off
+quit
+
+info threads
+thread ID
+break thread_test.c:123 thread all
+thread apply ID1 ID2 command
+thread apply all command
+
+set scheduler-locking off|on|step
+另外，gdb也提供对线程的断点设置以及对指定或所有线程发布命令的命令
+初次接触gdb下多线程的调试，往往会忽视gdb中活动线程的概念。一般来讲，在使用gdb调试的时候，
+只有一个线程为活动线程，如果希望得到其他的线程的输出结果，必须使用thread 命令切换至指定的线程，才能对该线程进行调试或观察输出结果
+
+多线程如果dump,多为段错误，一般都涉及内存非法读写，可以这样处理，使用下面的命令开关打开系统开关，让其可以在死掉的时候生成core文件。
+
+ulimit -c unlimited
+
+gdb ./bin ./core.pid
+进去后，使用bt查看死掉时栈的情况，再使用frame命令，frame命令是切换到bt栈的各个层级
+
+与调试控制相关的命令
+continue
+next 
+step
+until
+finish
+
+set follow-fork-mode patent // 跟踪父进程，默认
+set follow-fork-mode child // 跟踪子进程
+
+break foo if x>0
+commands
+printf "x is %d\n",x
+continue
+end
+
+
+C++性能榨汁机之伪共享
+在多核并发编程中，锁争用(缩短临界区，原子操作)去提高程序性能，但是伪共享确是我们从所写代码中看不出任何
+cache line
+位于金字塔模型最上层的是cpu中寄存器，其次是cpu缓存(L1,L2,L3),再往下是内存，最底层是磁盘，操作系统采用这种存储层次模型解决 cpu高速与内存磁盘低速
+之间的矛盾，cpu将最近使用的数据预先读取到cache中，下次再访问同样数据的时候，可以直接从速度比较快的cpu缓存中读取，避免从内存或磁盘读取拖慢整体速度
+
+cpu缓存的最小单位就是cacheline， 缓存行大小依据架构不同有不同大小，最常见的有64bytes和32byte,cpu缓存从内存取数据时以cache line 为单位进行，每一次
+都需要读取数据所在的整个缓存行，即使相邻的数据没有被用到也会被缓存到cpu缓存里面(这里又涉及局部性原理)
+
+缓存一致性
+在单核cpu的情况下，上述方法可以正常工作，可以确保缓存到cpu缓存中的数据永远是干净的，因为不会有其他cpu去更改内存中的数据，但是在多核cpu下，情况变得复杂，
+多个cpu中，每个cpu都有自己的私有缓存，可能共享L3缓存，当一个cpu1 对cache中缓存数据进行操作时，如果cpu2在此之前更改了该数据，则cpu1 中的数据就不再是干净的，
+即应该是失效数据，缓存一致性就是为了保证多cpu之间的缓存一致
+
+Linux系统中采用MESI协议处理缓存一致性，所谓MESI即是指cpu缓存的四种状态：
+M（修改，Modified）:本地处理器已经修改缓存行，即是脏行，它的内容与内存中的内容不一样，并且次cache只有本地一个拷贝（专有）
+E(专有，Exclusive):缓存行内容和内存中的一样，而且其他处理器都没有这行数据
+S(共享，Shared):缓存行内容和内存中的一样，有可能其他处理器也存在此缓存行的拷贝
+I(无效，Invalid):缓存行失效，不能使用
+
+伪共享
+何谓伪共享，上面我们提到过CPU的缓存是以cacheline为单位进行的，即除了本身所需读写的数据之外还会缓存与该数据在同一缓存行的数据，假设缓存行大小是32字节，
+int array[8], cpu0 频繁读写array[0],cpu1频繁读写array[1],按理说这两个cpu读写数据没有任何关联，也就不会产生任何竞争，不会有性能问题，但是由于cpu缓存是以
+cacheline 为单位进行存取的，也就是以cacheline为单位失效的，即使cpu0只更改了缓存行中array[0] 的数据，也会导致cpu1中该缓存行完全失效，同理，cpu1 对array[1]
+的改动也会导致cpu0 中该cacheline失效，由此引发该缓存行在两个cpu之间pingpong,缓存行频繁失效，最终导致程序性能下降，这就是伪共享
+
+如何避免缓存行失效
+1.padding，缓存行填充:为了避免伪共享就需要将可能造成伪共享的多个变量置于不同的缓存行中，可以采用在变量后面填充字节的方式达到该目的
+2.使用某些语言或者编译器中强制变量对齐，将变量都对齐到缓存行大小，避免伪共享发生。
+
+
+//线程安全的队列
+对于signal/broadcast端
+1.不一定要在mutex已上锁的情况下调用signal(理论上)
+2.在signal之前一般要修改布尔表达式
+3.修改布尔表达式通常要用mutex保护（至少用作full memory barrier）
+4.注意区分signal与broadcast："broadcast 通常用于表示状态变化，signal通常用于表示资源可用"（broadcast should generally be used to indicate state change rather than resource availability）
+
+//条件变量是非常底层的同步原语，很少直接使用，一般都是用它来实现高层的同步措施，如BlockingQueue<T> 或 Queue，CountDownLatch
+倒计时（CountDownLatch)是一种常用且易用的同步手段。它主要有两种用途：
+1.主线程发起多个子线程，等这些子线程各自都完成一定的任务之后，主线程才继续执行。通常用于主线程等待多个子线程完成初始化。
+2.主线程发起多个子线程，子线程都等待主线程，主线程完成其他一些仍无之后通知所有子线程开始执行。通常用于多个字线程等待主线程发出“起跑”命令。
+
+
+初学者常干的一件事情是，一见到某个共享数据结构频繁读而很少写，就把mutex替换为rwlock。甚至首选rwlock来保护共享状态，这不见得是正确的。
+从正确性方面来说，一种典型的易犯错误是在持有read lock的时候修改了共享数据，这通常发生在程序的维护阶段，为了新增共鞥了，程序员不小心在原来read lock 保护的函数中调用了会修改状态的函数。这种错误的后果跟无保护读写共享数据一样。
+从性能方面来说，读写锁不见得比普通mutex更高效。无论如何reader lcok 加锁的开销不会比mutex lock小，因为它要更新当前reader的数目。如果临界区很小，锁争用不激烈，那么mutex往往会更快。
+reader lock 可能允许提升为writer lock,也可能不允许提升。考虑post() 和 traverse() 示例，如果用读写锁来保护foos对象，那么post应该持有写锁，而traverse应该持有读锁。如果允许把读锁提升为写锁，后果跟使用recursive mutex一样，会造成迭代器失效，程序崩溃。
+通常reader lock是可重入的，writer lock是不可重入的。但是为了防止writer饥饿，writer lock通常会阻塞后来的reader lock，因此reader lock 在重入的时候可能死锁。另外，在追求低延迟读取的场合也不适用读写锁。
+
+
+
+//sse 指令集
+pthread线程分析工具，Intel Thread Checker 和 Valgrind-Helgrind
+
+
+//缓存行
+在文章开头提到过，缓存系统中是以缓存行未单位存储的。缓存行通常是64字节，并且它有效地引用主内存中的一块地址。
+如果存在这样的场景，有2个线程操作不同的成员变量，但是这2个变量在同一条cacheline里面，这个时候会发生伪共享，false sharing.
+防止伪共享的方法
+1.padding 比方说当cacheline=64Byte 时候，int array[16],尽管我们只需要一个int array[0]; 空间换时间
+2.使用编译器指示，来强制每一个变量对齐。例如编译器显式使用 _declspec(align(n)) 此处n=64,按照cacheline边界对齐
+__declspec(align(64)) int thread1_global_variable;
+__declspec(align(64)) int thread2_global_variable;
+
+
+
+强制内联 __forceinline
+__attribute__((noinline));
+__inline__ __attribute__((always_inline))
+
+从奔腾开始，很多8086引入TSC，一个用户时间戳计数器的64位寄存器，它在每个时钟信号(CLK，CLK是微处理器中一条用于接收外部振荡器的时钟信号输入引线)到来时加1。
+通过它可以计算cpu的主频，比如：如果微处理器的主频是1MHZ的话，那么TSC就会在1秒内增加1000000.除了计算cpu主频外，还可以通过TSC来测试微处理器其他处理单元的运算速度，
+那么如何获取TSC的值呢？rdtsc, 一条读取TSC的指令，它把TSC的低32位存放在eax寄存器中，把TSC的高32位存放在edx中。
+下面来看看rdtsc的具体用法，在linux源代码include/asm-i386/msr.h 中，可以找到这么3个关于rdtsc的宏定义:
+#define rdtsc(low,high) \
+    __asm__ __volatile__("rdtsc":"=a"(low),"=d"(high))
+#define rdtscl(low) \
+    __asm__ __volatile__("rdtsc":"=a"(low)::"edx")
+#define rdtscll(val) \
+    __asm__ __volatile__("rdtsc":"=A"(val))
+
+typedef unsigned long long cycles_t;
+inline cycles_t currentcycles()
+{
+    cycles_t result;
+    __asm__ __volatile__("rdtsc":"=A"(result));
+    return result;
+}
+
+g++ -W -Wall -Werror -Wno-unused-parameter test.cpp -o test
+-W -Wall 打开所有警告 -Werror 所有警告当作error处理 -Wno-unused-parameter 关闭 unused-parameter警告
+
+
+出现链接问题可以用前面的方法调试，搜索的顺序如下
+编译期指定的路径，如-Wl,-rpath,库的路径;
+LD_LIBRARY_PATH 指定的动态库搜索路(对setuid/setgid的程序无效，并且可以被链接器选项–library-path覆盖)
+DT_RUNPATH指定的动态库搜索路径（-Wl,–enable-new-dtags）
+/etc/ld.so.conf 中指定的动态库搜索路径 (通常有 /usr/local/lib)
+默认路径 /lib 和 /usr/lib
+————————————————
+版权声明：本文为CSDN博主「ka__ka__」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/thisinnocence/article/details/93345189
+
+
+
+基础知识
+使用 #include<> :直接到系统指定的某些目录中去找某些头文件。
+使用 #include""：先到源文件所在文件夹去找，然后再到系统指定的某些目录中去找某些头文件。
+使用 -I 参数指定的头文件路径仅次于搜索当前路径。
+gcc -E -v 可以输出头文件路径搜索过程
+gcc搜索头文件顺序
+参数-I指定的路径
+指定路径有多个路径时，按指定路径的顺序搜索
+
+**gcc的环境变量 **
+C_INCLUDE_PATH
+CPLUS_INCLUDE_PATH
+OBJC_INCLUDE_PATH
+
+找系统目录
+/usr/include
+/usr/local/include
+/usr/lib/gcc-xxxx/xxxx
+
+linux 库文件的搜索顺序
+编译目标代码时指定
+rpath指定
+环境变量
+LD_LIBRARY_PATH
+配置文件中的指定
+/etc/ld.so.conf
+** 默认动态库搜索路径**
+/lib
+默认动态库搜索路径
+/usr/lib
+————————————————
+版权声明：本文为CSDN博主「诸葛蜗牛」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/qq_22054285/article/details/86674737
+
+
+
+GCC __sync
+据说在C++11标准出来之前，大家都诟病C++标准没有一个明确的内存模型，随着多线程开发的普及这个问题显得越来越迫切。当然各个C++编译器实现者也是各自为政，GCC自然是实用主义当道，于是根据Intel的开发手册老早就搞出了一系列的__sync原子操作函数集合，这也是被广大程序员最为熟悉常用的操作了吧，罗列如下：
+
+type __sync_fetch_and_OP (type *ptr, type value, ...)
+type __sync_OP_and_fetch (type *ptr, type value, ...)
+bool__sync_bool_compare_and_swap (type *ptr, type oldval, type newval, ...)
+type __sync_val_compare_and_swap (type *ptr, type oldval, type newval, ...)
+__sync_synchronize (...)
+
+type __sync_lock_test_and_set (type *ptr, type value, ...)
+void__sync_lock_release (type *ptr, ...)
+上面的OP操作包括add、sub、or、and、xor、nand这些常见的数学操作，而type表示的数据类型Intel官方允许的是int、long、long long的带符号和无符号类型，但是GCC扩展后允许任意1/2/4/8的标量类型；CAS的操作有两个版本分别返回bool表示是否成功，而另外一个在操作之前会先返回ptr地址处存储的值；__sync_synchronize直接插入一个full memory barrier，当然你也可能经常见到像asm volatile(“” ::: “memory”);这样的操作。前面的这些原子操作都是full barrier类型的，这意味着：任何内存操作的指令不允许跨越这些操作重新排序。
+
+
+
+
+typedef uint64_t cycles_t;
+
+inline cycles_t currentcycles()
+{
+    cycles_t result;
+    __asm__ __volatile__ ("rdtsc" : "=A" (result));
+        
+    return result;
+}
+
+
+三种访问权限
+public 可被任意实体访问
+protected 只允许子类及本类的成员函数访问
+private 只允本类的成员函数访问
+
+访问方式 分 派生类成员函数访问 和 派生类对象访问
+
+三种继承方式
+public protected private
+
+组合结果
+基类中      继承方式             子类中
+
+public     ＆ public继承        => public
+public     ＆ protected继承     => protected    
+public     ＆ private继承       => private
+
+protected  ＆ public继承        => protected
+protected  ＆ protected继承     => protected    
+protected  ＆ private继承       => private
+
+private    ＆ public继承        => 子类无权访问
+private    ＆ protected继承     => 子类无权访问
+private    ＆ private继承       => 子类无权访问
+
+
+基类中     继承方式             子类中
+public      public              public
+protected   public              protected
+private     public              隐藏
+
+public     protected            protected
+protected  protected            protected
+private    protected            隐藏
+
+public     private              private
+protected  private              private
+private    private              隐藏
+
+从以上组合结果可以看出
+0.基类中的private成员不受继承方式的影响，子类永远无权访问
+1.public继承 不改变基类成员的访问权限
+2.private继承 使得基类所有成员在子类中的访问权限变为private
+3.protected继承 将基类中的public成员变为子类的protected成员，其他成员的访问权限不变
