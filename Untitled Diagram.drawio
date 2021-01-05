@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-01-05T08:41:40.004Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="1Fn6Ckb6Z2g5CZQLvzSY" version="14.1.4" type="github">
+<mxfile host="app.diagrams.net" modified="2021-01-05T08:47:36.404Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="_J_9PETkWjl3F4dcyC3g" version="14.1.4" type="github">
   <diagram name="Page-1" id="822b0af5-4adb-64df-f703-e8dfc1f81529">
-    <mxGraphModel dx="1700" dy="880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1700" dy="946" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -19,10 +19,10 @@
         <mxCell id="7d933b09d9755ecc-21" value="" style="verticalLabelPosition=bottom;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;shape=mxgraph.citrix.tower_server;rounded=0;shadow=0;comic=0;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="1691" y="177" width="65" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-1" value="win跳板机10.35.180.234" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-1" value="win跳板机10.35.180.a" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="140" y="280" width="80" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-2" value="托管虚拟机10.35.180.235" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-2" value="linux/win虚拟机10.35.180.b" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="230" y="280" width="80" height="80" as="geometry" />
         </mxCell>
         <object label="pVlan" id="5NULZO0XBvznPBfrXjzR-4">
@@ -33,10 +33,10 @@
         <mxCell id="5NULZO0XBvznPBfrXjzR-7" value="" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="120" y="564" width="200" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-8" value="win跳板机10.35.180.234" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-8" value="win跳板机10.35.180.x" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="130" y="594" width="80" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-9" value="托管虚拟机10.35.180.235" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-9" value="linux/win虚拟机10.35.180.y" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="220" y="594" width="80" height="80" as="geometry" />
         </mxCell>
         <object label="pVlan" id="5NULZO0XBvznPBfrXjzR-10">
@@ -119,13 +119,13 @@
         <mxCell id="5NULZO0XBvznPBfrXjzR-33" value="&lt;font color=&quot;#ff3333&quot;&gt;国信内网&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=none;" vertex="1" parent="1">
           <mxGeometry x="360" y="740" width="300" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-34" value="&lt;font color=&quot;#ff3333&quot;&gt;客户1&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-34" value="&lt;font color=&quot;#ff3333&quot;&gt;客户1托管机&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="150" y="409" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-35" value="&lt;font color=&quot;#ff3333&quot;&gt;客户2&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-35" value="&lt;font color=&quot;#ff3333&quot;&gt;客户2托管机&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="140" y="720" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-36" value="&lt;font color=&quot;#ff0000&quot;&gt;客户1&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-36" value="&lt;font color=&quot;#ff0000&quot;&gt;客户1外网机&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="120" y="20" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="5NULZO0XBvznPBfrXjzR-38" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="5NULZO0XBvznPBfrXjzR-36" target="5NULZO0XBvznPBfrXjzR-1">
