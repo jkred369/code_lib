@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-01-04T01:51:22.613Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="e8o9uZZ4WZKkZp6fGCCy" version="14.1.4" type="github">
+<mxfile host="app.diagrams.net" modified="2021-01-05T08:41:40.004Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="1Fn6Ckb6Z2g5CZQLvzSY" version="14.1.4" type="github">
   <diagram name="Page-1" id="822b0af5-4adb-64df-f703-e8dfc1f81529">
-    <mxGraphModel dx="947" dy="880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1700" dy="880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -44,16 +44,16 @@
             <mxGeometry x="140" y="693" width="120" height="30" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-11" value="gtp_ma实盘交易网关&lt;br&gt;84段" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-11" value="gtp_ma实盘交易网关&lt;br&gt;84段&lt;br&gt;10.35.86.122/123" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="520" y="400" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="5NULZO0XBvznPBfrXjzR-12" value="策略管理服务器&lt;br&gt;10.35.86.120/121 : 9205&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="520" y="280" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-13" value="gtp_ma仿真交易网关&lt;br&gt;84段" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-13" value="gtp_ma仿真交易网关&lt;br&gt;84段&lt;br&gt;10.35.86.124/125" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="520" y="490" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="5NULZO0XBvznPBfrXjzR-14" value="gtp_run管理网关&lt;br&gt;84段" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="5NULZO0XBvznPBfrXjzR-14" value="gtp_run管理网关&lt;br&gt;84段&lt;br&gt;10.35.86.122/123" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="520" y="590" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="5NULZO0XBvznPBfrXjzR-16" value="实盘柜台vip200 10.35.84.153/154" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
